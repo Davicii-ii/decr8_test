@@ -11,7 +11,7 @@ Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
 
-import logging, random, os, re
+import logging, random, os, re, json
 from uuid import uuid4
 
 from telegram import (
@@ -44,15 +44,21 @@ logger = logging.getLogger(__name__)
 decr8 = -1001280481543
 p = re.compile("[a-z]+", re.IGNORECASE)
 
-with Client("decr8_linux") as app:
-    d = {
-        msg.audio.file_name: msg.message_id
-        for msg in (app.iter_history(decr8))
-        if msg.audio
-        if not None
-    }
+with open("/home/ayuko/decr8/res/decr8_data.json", "r", encoding="utf-8") as f:
+    d = json.load(f)
+    
+def update_json():
+    with Client("decr8_linux") as app:
+        d = {
+            msg.audio.file_name: msg.message_id
+            for msg in (app.iter_history(decr8))
+            if msg.audio
+            if not None
+        }
 
-
+    with open("/home/ayuko/decr8/res/decr8_data.json", "w", encoding="utf-8") as f:
+        json.dump(d, f)
+        
 def start(update, context):
     keyboard = [
         [
@@ -160,3 +166,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
