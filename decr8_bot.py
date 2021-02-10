@@ -83,7 +83,7 @@ def update_data():
             if msg.audio
             if not None
         }
-        with open(".res/decr8_data.json", "w", encoding="utf-8") as f:
+        with open("/home/ayuko/decr8/res/decr8_data.json", "w", encoding="utf-8") as f:
             logger.info("Dumping decr8 audio data into json file.")
             json.dump(d, f)
         
@@ -501,7 +501,7 @@ def main():
 if __name__ == "__main__":
 
     try:
-        with open(".res/decr8_data.json", "r+", encoding="utf-8") as f:
+        with open("/home/ayuko/decr8/res/decr8_data.json", "r+", encoding="utf-8") as f:
             logger.info("Unpacking data to dict.")
             d = json.load(f)
             sorted(d)
