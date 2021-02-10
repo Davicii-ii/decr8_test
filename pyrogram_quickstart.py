@@ -1,5 +1,8 @@
 from pyrogram import Client
 
+api_id = 314504
+api_hash = "8c64c308e6f0186d495ae1e92a1c228d"
+
 app = Client("decr8")
 
 @app.on_message()
