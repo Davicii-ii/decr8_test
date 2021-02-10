@@ -429,7 +429,7 @@ def main():
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
     updater = Updater(
-        "1575933473:AAE-pseOycvK1OU32k1P2xVAH0Lwx_Ikjmg", use_context=True
+        "1266125805:AAFnUPiqc0LiHPWJNlOp2XhfSGsqtu_cEbA", use_context=True
     )
     
     # Get the dispatcher to register handlers
