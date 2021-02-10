@@ -213,6 +213,7 @@ def _next(update: Update, context: CallbackContext) -> None:
 def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
     update.message.reply_text("/next Add to playlist.")
+    update_data()  
     
     
 def search(update: Update, context: CallbackContext) -> None:
@@ -508,7 +509,6 @@ if __name__ == "__main__":
             
     except json.decoder.JSONDecodeError as e:
         update_data()
-
-    update_data()   
+ 
     main()
                 
