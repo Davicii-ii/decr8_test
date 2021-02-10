@@ -509,5 +509,6 @@ if __name__ == "__main__":
     except json.decoder.JSONDecodeError as e:
         update_data()
 
+    update_data()   
     main()
                 
