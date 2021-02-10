@@ -72,7 +72,7 @@ STAGE1, STAGE2, STAGE3, STAGE4 = range(4)
 
 global text
 
-app = Client("decr8_windows[test]", api_id=api_id, api_hash=api_hash)
+app = Client("decr8_linux", api_id=api_id, api_hash=api_hash)
 
 def update_data():
 
