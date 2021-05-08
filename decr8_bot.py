@@ -71,25 +71,18 @@ DEVELOPER_CHAT_ID = me
 STAGE1, STAGE2, STAGE3, STAGE4 = range(4)
 
 global text
+global count
+global val
+global key
 
-app = Client("decr8_linux", api_id=api_id, api_hash=api_hash)
-
-def update_data():
-
-    with app:
-        d = {
-            msg.audio.file_name: msg.message_id
-            for msg in (app.iter_history(decr8))
-            if msg.audio
-            if not None
-        }
-        with open("/home/ayuko/decr8/res/decr8_data.json", "w", encoding="utf-8") as f:
-            logger.info("Dumping decr8 audio data into json file.")
-            json.dump(d, f)
+app = Client("decr8_g-host", api_id=api_id, api_hash=api_hash)
         
 def start(update: Update, context: CallbackContext) -> None:
-
-    reply_keyboard = [['/start','/next'],['/help']]
+    """Start bot"""
+    global count
+    
+    count = 1
+    reply_keyboard = [['/start'],['/queue'],['/help']]
 
     """Send a deep-linked URL when the command /start is issued."""
     bot = context.bot
@@ -98,26 +91,22 @@ def start(update: Update, context: CallbackContext) -> None:
         bot.get_me().username,
         DECR8,
         group=True
-    )
-
-    text = (
-        f'<pre>👺\n</pre>'
-        f'<pre>Add me to a group!{url}\n</pre>'
-        f'<pre>dec8{dcr8_url}</pre>'
-    )
+        )
+    
+    text = ("👺" "{} items found".format(len(d)))
     
     update.message.reply_text(
         text,
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard,
-            parse_mode=ParseMode.HTML,
+            parse_mode=ParseMode.MARKDOWN,
             one_time_keyboard=True
         )
     )
     
     return STAGE1
 
-def deep_linked_level_1(update, context):
+def deep_linked_level_1(update: Update, context: CallbackContext) -> None:
     """Reached through the CHECK_THIS_OUT payload"""
     bot = context.bot
     try:
@@ -157,7 +146,7 @@ def deep_linked_level_1(update, context):
         reply_markup=keyboard
     )
 
-def deep_linked_level_2(update, context):
+def deep_linked_level_2(update: Update, context: CallbackContext) -> None:
     """Reached through the SO_COOL payload"""
     bot = context.bot
     
@@ -166,36 +155,78 @@ def deep_linked_level_2(update, context):
         USING_ENTITIES
     )
 
-    text = " ""[▶️ CLICK HERE]({}).".format(url)
+    text = " ""[▶️ STOP BOT]({}).".format(url)
     update.message.reply_text(
         text,
         parse_mode=ParseMode.MARKDOWN,
         disable_web_page_preview=True
     )
 
-def deep_linked_level_3(update, context):
+def deep_linked_level_3(update: Update, context: CallbackContext) -> None:
     """Reached through the USING_ENTITIES payload"""
     payload = context.args
     update.message.reply_text(
-        "/next",
+        "/queue",
         parse_mode=ParseMode.MARKDOWN
     )
 
-def _next(update: Update, context: CallbackContext) -> None:
+def add(update: Update, context: CallbackContext) -> None:
+
+    global count
+
+    reply_keyboard = [
+        ["/queue"],
+        ["/sub", "/add"]
+    ]
+
+    count += 1
+
+    update.message.reply_text(
+        "queue {} song(s)".format(count),
+        reply_markup=ReplyKeyboardMarkup(reply_keyboard),
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+def sub(update: Update, context: CallbackContext) -> None:
+
+    global count
+
+    reply_keyboard = [
+        ["/queue"],
+        ["/sub", "/add"]
+    ]
+    help_keyboard = [
+        ["/add"]
+    ]
+
+    if count <= 1:
+        update.message.reply_text(
+            "queue cant be < {}. /add instead".format(count),
+            reply_markup=ReplyKeyboardMarkup(help_keyboard),
+            parse_mode=ParseMode.MARKDOWN
+        )
+    else:
+        count -= 1
+        update.message.reply_text(
+            "queue {} song(s)\nuse /add for more".format(count),
+            reply_markup=ReplyKeyboardMarkup(reply_keyboard),
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+def queue(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /next is issued."""
 
+    global count
+
     try:
-        for i in range(
-                min(d.values()),
-                max(d.values()),
-                max(d.values())//min(d.values())**2
-        ):
+        for i in range(count):
             url = "https://t.me/crateofnotsodasbutmusic/{}".format(
                 random.choice(list(d.values())))
 
             reply_keyboard = [
-                ["/start", "/next"],
-                ["/help"]
+                ["/sub", "/add"],
+                ["/queue"],
+                ["/start"]
             ]
             
             update.message.reply_audio(
@@ -213,8 +244,6 @@ def _next(update: Update, context: CallbackContext) -> None:
 def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
     update.message.reply_text("/next Add to playlist.")
-    update_data()  
-    
     
 def search(update: Update, context: CallbackContext) -> None:
     """Search the user's message."""
@@ -336,45 +365,21 @@ def button(update: Update, context: CallbackContext) -> None:
     
 def inlinequery(update: Update, context: CallbackContext) -> None:
     """Handle the inline query."""
-    
+
     query = update.inline_query.query
+    results = []
 
-    try:
-        results = [
-            InlineQueryResultAudio(
-                id=uuid4(),
-                audio_url="{}{}".format(dcr8_url, random.choice(val)),
-                title="{}".format(key),
-                parse_mode=ParseMode.MARKDOWN
-            ),
-            
-            InlineQueryResultArticle(
-                id=uuid4(),
-                title="{}".format(key),
-                input_message_content=InputTextMessageContent(query)
-            ),
-            
-            InlineQueryResultArticle(
-                id=uuid4(),
-                title="Bold",
-                input_message_content=InputTextMessageContent(
-                    f"*{escape_markdown(query)}*", parse_mode=ParseMode.MARKDOWN
+    for k, v in d.items():
+        if re.search(query, k, re.IGNORECASE):
+            results.append(
+                InlineQueryResultAudio(
+                    id=uuid4(),
+                    audio_url="{}{}".format(dcr8_url, v),
+                    title="{}".format(k)
                 ),
-            ),
-            
-            InlineQueryResultArticle(
-                id=uuid4(),
-                title="Italic",
-                input_message_content=InputTextMessageContent(
-                    f"_{escape_markdown(query)}_", parse_mode=ParseMode.MARKDOWN
-                ),
-            ),
-        ]
-    except BadRequest as e:
-        update.message.reply_text(e)
+            )
         
-    update.inline_query.answer(results)
-
+    update.inline_query.answer(results, auto_pagination=True)
 
 def stage1(update: Update, context: CallbackContext) -> int:
 
@@ -430,7 +435,7 @@ def main():
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
     updater = Updater(
-        "1266125805:AAFnUPiqc0LiHPWJNlOp2XhfSGsqtu_cEbA", use_context=True
+        "1575933473:AAE-pseOycvK1OU32k1P2xVAH0Lwx_Ikjmg", use_context=True
     )
     
     # Get the dispatcher to register handlers
@@ -468,7 +473,7 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            STAGE1: [MessageHandler(Filters.regex('^(/start|/next|/cancel)$'), stage1)],
+            STAGE1: [MessageHandler(Filters.regex('^(/start|/queue|/cancel)$'), stage1)],
             STAGE3: [
                 MessageHandler(Filters.location, stage3),
                 CommandHandler('skip', stage3),
@@ -480,9 +485,12 @@ def main():
     
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("next", _next))
+    dp.add_handler(CommandHandler("queue", queue))
+    dp.add_handler(CommandHandler("add", add))
+    dp.add_handler(CommandHandler("sub", sub))
+    
     dp.add_handler(CommandHandler("help", help_command))
-    dp.add_handler(CommandHandler('bad_command', bad_command))
+    dp.add_handler(CommandHandler("bad_command", bad_command))
     
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(InlineQueryHandler(inlinequery))
@@ -500,15 +508,13 @@ def main():
     updater.idle()    
         
 if __name__ == "__main__":
-
-    try:
-        with open("/home/ayuko/decr8/res/decr8_data.json", "r+", encoding="utf-8") as f:
-            logger.info("Unpacking data to dict.")
-            d = json.load(f)
-            sorted(d)
-            
-    except json.decoder.JSONDecodeError as e:
-        update_data()
- 
+    with open(
+            "/home/ayuko/decr8/res/decr8_data.json",
+            "r+",
+            encoding="utf-8") as f:
+        logger.info("Unpacking data to dict.")
+        d = json.load(f)
+        sorted(d)
+        
     main()
                 
