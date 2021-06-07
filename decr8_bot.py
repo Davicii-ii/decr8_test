@@ -509,7 +509,7 @@ def main():
         
 if __name__ == "__main__":
     with open(
-            "/home/ayuko/decr8/res/decr8_data.json",
+            "/home/decr8/decr8/res/decr8_data.json",
             "r+",
             encoding="utf-8") as f:
         logger.info("Unpacking data to dict.")
